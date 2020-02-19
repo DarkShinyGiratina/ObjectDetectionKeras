@@ -67,7 +67,6 @@ def process_path(file_path):
     return img
 
 
-<<<<<<< HEAD
 # Testing Code to Draw the Bounding Boxes
 for image_features in parsed_image_dataset.take(1):
     filename = image_features['image/filename'].numpy().decode('utf-8')
@@ -105,7 +104,7 @@ def calc_IOU(truth, pred):
     pred_a = pred.w * pred.h
     union_a = truth_a + pred_a - overlap_a
     return overlap_a / union_a
-=======
+
 def format_dataset(dataset):
     images = []
     labels = []
@@ -247,4 +246,3 @@ if args.train:
     test()
 else:
     model.load_weights('weights_006.h5')
->>>>>>> 42d1d2d177429634d2a45a90c10185f1eb452049
