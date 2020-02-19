@@ -82,7 +82,7 @@ def process_path(file_path):
 # Testing Code to Draw the Bounding Boxes
 for image_features in parsed_image_dataset.take(1):
     filename = image_features['image/filename'].numpy().decode('utf-8')
-    print(filename)
+    #print(filename)
     tensor = process_path('./images/power_cell/' + filename)
     fh = open("imageToSave.jpeg", "wb")
     fh.write(encode_img(tensor).numpy())
@@ -98,7 +98,7 @@ for image_features in parsed_image_dataset.take(1):
         print(i)
         draw.rectangle([(xmins[i] * 416, ymins[i] * 416), (xmaxes[i] * 416, ymaxes[i] * 416)], outline=0xff0000,
                        width=3, fill=None)
-    pic.show()
+    display.display(pic)
 
 # I'm pretty sure this is the dataset now
 # train_ds=prepare_for_training(labeled_ds)
