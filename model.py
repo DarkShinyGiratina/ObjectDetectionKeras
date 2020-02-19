@@ -1,5 +1,7 @@
 import tensorflow as tf
 import tensorflow.keras.layers as layers
+from tensorflow import keras
+from keras import backend as k
 import IPython.display as display
 from PIL import Image, ImageDraw
 import numpy as np
@@ -13,9 +15,12 @@ AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 32
 IMG_HEIGHT = 416
 IMG_WIDTH = 416
+GRID_CELLS = 12
+N_BOXES = 2
+N_CLASSES = 1
 
 
-def build(img_w, img_h, grid_w, grid_h, nb_boxes, nb_classes):
+def build(img_w, img_h, grid_w, grid_h, n_boxes, n_classes):
     inputs = tf.keras.Input(shape=(img_w, img_h, 3))
     x = layers.Conv2D(16, (1, 1))(inputs)
     x = layers.Conv2D(32, (3, 3))(x)
@@ -28,9 +33,9 @@ def build(img_w, img_h, grid_w, grid_h, nb_boxes, nb_classes):
     x = layers.Flatten()(x)
     x = layers.Dense(256, activation='sigmoid')(x)
     x = layers.Dense(
-        grid_w * grid_h * (nb_boxes * 5 + nb_classes), activation='sigmoid')(x)
+        grid_w * grid_h * (n_boxes * 5 + n_classes), activation='sigmoid')(x)
     outputs = layers.Reshape(
-        (grid_w * grid_h, (nb_boxes * 5 + nb_classes)))(x)
+        (grid_w * grid_h, (n_boxes * 5 + n_classes)))(x)
 
     model = tf.keras.Model(inputs=inputs, outputs=outputs, name='YoloV3')
 
@@ -52,7 +57,6 @@ def _parse_image_function(example_proto):
     return tf.io.parse_single_example(example_proto, image_feature_description)
 
 
-
 parsed_image_dataset = raw_image_dataset.map(_parse_image_function)
 parsed_image_dataset = parsed_image_dataset.shuffle(500)
 
@@ -65,12 +69,15 @@ def decode_img(img):
     # resize the image to the desired size.
     return tf.image.resize(img, [IMG_WIDTH, IMG_HEIGHT])
 
+
 def encode_img(tensor):
     # resize the image to the desired size.
+    img = tf.image.resize(tensor, [240, 320])
     # Use `convert_image_dtype` to convert to uint8.
-    img = tf.image.convert_image_dtype(tensor, tf.uint8)
+    img = tf.image.convert_image_dtype(img, tf.uint8)
     # convert the 3D uint8 tensor to a compressed string
     return tf.image.encode_jpeg(img)
+
 
 def process_path(file_path):
     # load the raw data from the file as a string
@@ -107,7 +114,6 @@ for image_features in parsed_image_dataset.take(1):
 
 # print(label_batch.numpy())
 
-# show_batch(image_batch.numpy(), label_batch.numpy())
 
 def calc_IOU(truth, pred):
     overlap_w = (truth.w + pred.w) / 2 - abs(truth.x - pred.x)
